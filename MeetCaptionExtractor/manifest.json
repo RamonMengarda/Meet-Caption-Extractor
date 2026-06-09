@@ -1,14 +1,17 @@
 {
   "manifest_version": 3,
-  "name": "Meet Transcript Logger",
-  "version": "1.1",
-  "description": "Captures and saves Google Meet transcripts.",
+  "name": "Meet Caption Extractor",
+  "version": "2.0",
+  "description": "Automatically detects Google Meet and Microsoft Teams meetings, enables captions, transcribes them, and saves a Markdown file when you leave.",
   "permissions": [
     "storage",
-    "downloads" 
+    "downloads"
   ],
   "host_permissions": [
-    "https://meet.google.com/*"
+    "https://meet.google.com/*",
+    "https://teams.microsoft.com/*",
+    "https://teams.cloud.microsoft/*",
+    "https://teams.live.com/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -16,14 +19,16 @@
   "content_scripts": [
     {
       "matches": [
-        "https://meet.google.com/*"
+        "https://meet.google.com/*",
+        "https://teams.microsoft.com/*",
+        "https://teams.cloud.microsoft/*",
+        "https://teams.live.com/*"
       ],
       "js": [
+        "platforms.js",
         "content.js"
-      ]
+      ],
+      "run_at": "document_idle"
     }
-  ],
-  "action": {
-    "default_popup": "popup.html"
-  }
+  ]
 }
