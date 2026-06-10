@@ -61,7 +61,7 @@
 
   const TEAMS_SELECTORS = {
     leave:
-      "button[data-tid='hangup-main-btn'], button[data-tid='hangup-leave-button'], button[data-tid='hangup-end-meeting-button'], div#hangup-button button, #hangup-button",
+      "button[data-tid='hangup-main-btn'], button[data-tid='hangup-leave-button'], button[data-tid='hangup-end-meeting-button'], div#hangup-button button, #hangup-button, button[aria-label='Leave' i], button[aria-label*='Leave call' i], button[aria-label*='Hang up' i], button[aria-label*='Sair' i]",
     captionsContainer:
       "[data-tid='closed-caption-v2-window-wrapper'], [data-tid='closed-captions-renderer'], [data-tid*='closed-caption']",
     captionMessage: ".fui-ChatMessageCompact",
