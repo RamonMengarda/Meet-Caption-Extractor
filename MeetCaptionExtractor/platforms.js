@@ -57,6 +57,14 @@
       }
       return out;
     },
+
+    // Meet tab title looks like "Meet - <name>" or "Google Meet". Strip the prefix.
+    getMeetingTitle() {
+      let t = (document.title || "").trim();
+      t = t.replace(/^(Google\s+)?Meet\s*[-–—|:]?\s*/i, "").trim();
+      if (!t || /^(Google\s+)?Meet$/i.test(t)) return "";
+      return t;
+    },
   };
 
   const TEAMS_SELECTORS = {
@@ -127,6 +135,15 @@
         if (text) out.push({ speaker: speaker || "Unknown", text });
       }
       return out;
+    },
+
+    // Teams tab title looks like "(3) <subject> | Microsoft Teams".
+    getMeetingTitle() {
+      let t = (document.title || "").trim();
+      t = t.replace(/\s*\|\s*Microsoft Teams\s*$/i, "").trim();
+      t = t.replace(/^\(\d+\)\s*/, "").trim(); // drop unread badge
+      if (!t || /^Microsoft Teams$/i.test(t)) return "";
+      return t;
     },
   };
 

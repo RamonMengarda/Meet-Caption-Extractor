@@ -36,13 +36,24 @@ function fileTimestamp(d) {
   );
 }
 
+// Strip characters that are invalid in download filenames.
+function sanitizeFilename(name) {
+  return String(name || "")
+    .replace(/[\\/:*?"<>|]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80);
+}
+
 function buildMarkdown(session) {
   const label = session.label || session.platform || "Meeting";
+  const title = (session.title || "").trim();
   const start = session.startedAt ? new Date(session.startedAt) : new Date();
   const end = new Date();
   const lines = [];
-  lines.push(`# ${label} Transcript`);
+  lines.push(`# ${title || label + " Transcript"}`);
   lines.push("");
+  if (title) lines.push(`- **Meeting:** ${title}`);
   lines.push(`- **Platform:** ${label}`);
   lines.push(`- **Date:** ${start.toLocaleDateString("en-GB")}`);
   lines.push(
@@ -64,7 +75,9 @@ function buildMarkdown(session) {
 function saveSessionToFile(session) {
   if (!session || !session.entries || session.entries.length === 0) return;
   const md = buildMarkdown(session);
-  const filename = `${DOWNLOAD_SUBFOLDER}/${session.platform || "meeting"}-${fileTimestamp(new Date())}.md`;
+  const base =
+    sanitizeFilename(session.title) || session.platform || "meeting";
+  const filename = `${DOWNLOAD_SUBFOLDER}/${base}-${fileTimestamp(new Date())}.md`;
   const dataUrl =
     "data:text/markdown;charset=utf-8," + encodeURIComponent(md);
   chrome.downloads.download(
@@ -73,10 +86,12 @@ function saveSessionToFile(session) {
   );
 }
 
-async function endSession(tabId, { save = true } = {}) {
+async function endSession(tabId, { save = true, title } = {}) {
   await hydrate();
   const session = sessions[tabId];
   if (!session) return;
+  // Prefer a fresh title captured at leave time (more likely to be loaded).
+  if (title) session.title = title;
   if (save) saveSessionToFile(session);
   delete sessions[tabId];
   await persist();
@@ -91,6 +106,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sessions[tabId] = {
         platform: message.payload.platform,
         label: message.payload.label,
+        title: message.payload.title || "",
         startedAt: Date.now(),
         entries: [],
       };
@@ -127,7 +143,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message.type === "meetingEnded" && tabId != null) {
-      await endSession(tabId, { save: true });
+      await endSession(tabId, { save: true, title: message.payload.title });
       sendResponse({ ok: true });
       return;
     }

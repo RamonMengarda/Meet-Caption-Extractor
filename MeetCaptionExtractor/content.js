@@ -25,6 +25,14 @@ if (window.mceContentHasRun) {
       }
     }
 
+    function getTitle() {
+      try {
+        return (platform.getMeetingTitle && platform.getMeetingTitle()) || "";
+      } catch (e) {
+        return "";
+      }
+    }
+
     function processCaptions() {
       let captions;
       try {
@@ -91,7 +99,11 @@ if (window.mceContentHasRun) {
       console.log("[MCE] Meeting started.");
       safeSend({
         type: "meetingStarted",
-        payload: { platform: platform.id, label: platform.label },
+        payload: {
+          platform: platform.id,
+          label: platform.label,
+          title: getTitle(),
+        },
       });
       startEnableLoop();
       startCapture();
@@ -103,7 +115,10 @@ if (window.mceContentHasRun) {
       console.log("[MCE] Meeting ended.");
       stopEnableLoop();
       stopCapture();
-      safeSend({ type: "meetingEnded", payload: { platform: platform.id } });
+      safeSend({
+        type: "meetingEnded",
+        payload: { platform: platform.id, title: getTitle() },
+      });
     }
 
     // Poll the in-meeting state. Cheap check, runs regardless of captures.
@@ -122,7 +137,10 @@ if (window.mceContentHasRun) {
     window.addEventListener("beforeunload", () => {
       if (inMeeting) {
         inMeeting = false;
-        safeSend({ type: "meetingEnded", payload: { platform: platform.id } });
+        safeSend({
+          type: "meetingEnded",
+          payload: { platform: platform.id, title: getTitle() },
+        });
       }
     });
   }
